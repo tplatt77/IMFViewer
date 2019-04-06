@@ -1114,40 +1114,36 @@ void IMFViewer_UI::performMontage(PerformMontageWizard* performMontageWizard)
 	VSAbstractFilter::FilterListType datasets = baseWidget->getController()->getBaseFilters();
 	int i = 0;
 	for(VSAbstractFilter* dataset : datasets)
-	{
-	  if(selectedFilterNames.contains(dataset->getFilterName()))
-	  {
-		// Add contents to data container array
-		VSAbstractFilter::FilterListType children = dataset->getChildren();
-		for(VSAbstractFilter* childFilter : children)
-		{
-		  bool isSIMPL = dynamic_cast<VSSIMPLDataContainerFilter*>(childFilter);
-		  if(isSIMPL)
-		  {
-			VSSIMPLDataContainerFilter* dcFilter = dynamic_cast<VSSIMPLDataContainerFilter*>(childFilter);
-			if(dcFilter != nullptr)
-			{
-			  validSIMPL = true;
-			  DataContainer::Pointer dataContainer = dcFilter
-				->getWrappedDataContainer()->m_DataContainer;
-			  if(dataContainer != DataContainer::NullPointer())
-			  {
-				for(AttributeMatrix::Pointer am : dataContainer->getAttributeMatrices())
-				{
-				  QVector<size_t> tupleDims = am->getTupleDimensions();
-				  if(tupleDims.size() >= 2)
-				  {
-					amName = am->getName();
-					daName = am->getAttributeArrayNames().first();
-					break;
-				  }
-				}
-			  }
-			  montageDatasets.push_back(childFilter);
-			}
-		  }
-		}
-	  }
+  {
+    // Add contents to data container array
+    VSAbstractFilter::FilterListType children = dataset->getChildren();
+    for(VSAbstractFilter* childFilter : children)
+    {
+      bool isSIMPL = dynamic_cast<VSSIMPLDataContainerFilter*>(childFilter);
+      if(isSIMPL && (selectedFilterNames.contains(dataset->getFilterName()) || selectedFilterNames.contains(childFilter->getFilterName())))
+      {
+        VSSIMPLDataContainerFilter* dcFilter = dynamic_cast<VSSIMPLDataContainerFilter*>(childFilter);
+        if(dcFilter != nullptr)
+        {
+          validSIMPL = true;
+          DataContainer::Pointer dataContainer = dcFilter->getWrappedDataContainer()->m_DataContainer;
+          if(dataContainer != DataContainer::NullPointer())
+          {
+            for(AttributeMatrix::Pointer am : dataContainer->getAttributeMatrices())
+            {
+              QVector<size_t> tupleDims = am->getTupleDimensions();
+              if(tupleDims.size() >= 2)
+              {
+                amName = am->getName();
+                daName = am->getAttributeArrayNames().first();
+                break;
+              }
+            }
+          }
+          montageDatasets.push_back(childFilter);
+        }
+      }
+    }
 	}
   }
 
@@ -1308,6 +1304,7 @@ void IMFViewer_UI::saveSession()
 // -----------------------------------------------------------------------------
 void IMFViewer_UI::saveImage()
 {
+  static int montageCount = 0;
   QString filter = tr("Image File (*.png *.tiff *.jpeg *.bmp)");
   QString filePath = QFileDialog::getSaveFileName(this, "Save As Image File", m_OpenDialogLastDirectory, filter);
   if(filePath.isEmpty())
@@ -1321,7 +1318,48 @@ void IMFViewer_UI::saveImage()
   VSFilterViewModel* filterViewModel = baseWidget->getActiveViewWidget()->getFilterViewModel();
   VSAbstractFilter::FilterListType selectedFilters = baseWidget->getActiveViewWidget()->getSelectedFilters();
 
-  bool success = controller->saveAsImage(filePath, selectedFilters.front());
+  if (selectedFilters.empty())
+  {
+    return;
+  }
+
+  bool success;
+  if (selectedFilters.size() > 1)
+  {
+    PerformMontageWizard* performMontageWizard = new PerformMontageWizard(m_Ui->vsWidget);
+    QVariant var;
+    var.setValue(true);
+    performMontageWizard->setField(PerformMontage::FieldNames::StitchingOnly, var);
+    QString montageName = "StitchedMontage" + montageCount++;
+    var.setValue(montageName);
+    performMontageWizard->setField(PerformMontage::FieldNames::MontageName, var);
+    DatasetListInfo_t datasetList;
+    QStringList datasetNames;
+    for (VSAbstractFilter* selectedFilter : selectedFilters)
+    {
+      datasetNames.push_back(selectedFilter->getFilterName());
+    }
+    datasetList.DatasetNames = datasetNames;
+    var.setValue(datasetList);
+    performMontageWizard->setField(PerformMontage::FieldNames::SelectedDataset, var);
+    var.setValue(false);
+    performMontageWizard->setField(PerformMontage::FieldNames::ChangeSpacing, var);
+    var.setValue(1.0f); // Set all to 1 for now, though this is unused
+    performMontageWizard->setField(PerformMontage::FieldNames::SpacingX, var);
+    performMontageWizard->setField(PerformMontage::FieldNames::SpacingY, var);
+    performMontageWizard->setField(PerformMontage::FieldNames::SpacingZ, var);
+    var.setValue(true);
+    performMontageWizard->setField(PerformMontage::FieldNames::SaveToFile, var);
+    var.setValue(filePath);
+    performMontageWizard->setField(PerformMontage::FieldNames::OutputFilePath, var);
+    performMontage(performMontageWizard);
+    delete performMontageWizard;
+    success = false;
+  }
+  else
+  {
+    success = controller->saveAsImage(filePath, selectedFilters.front());
+  }
 
   if(success)
   {
