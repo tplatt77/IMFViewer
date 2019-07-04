@@ -280,9 +280,14 @@ private:
   void importRobometMontage();
 
   /**
-   * @brief importZeissMontage
+   * @brief importZeissXmlMontage
    */
-  void importZeissMontage();
+  void importZeissXmlMontage();
+
+  /**
+   * @brief importZeissXmlMontage
+   */
+  void importZeissZenMontage();
 
   /**
    * @brief runPipeline
