@@ -1,12 +1,13 @@
 Importing A Montage Dataset
 =========
-IMFViewer has 5 options for importing a montage:
+IMFViewer has 6 options for importing a montage:
 
 1. [DREAM3D Montage](#dream3d)
 2. [Fiji](#fiji)
 3. [Generic](#generic)
 4. [Robomet](#robomet)
-5. [Zeiss](#zeiss)
+5. [ZeissXml](#zeissxml)
+6. [ZeissZen](#zeisszen)
 
 ![Import Montage](Images/Import-Montage-Menu.png)
 
@@ -61,13 +62,23 @@ The **Robomet** montage allows the user to import image geometry from a Robomet 
 
 ---
 
-<a name="zeiss">
-## Zeiss ##
+<a name="zeissxml">
+## Zeiss XML##
 </a>
 
-![Zeiss Import Montage](Images/Import-Zeiss-Montage.png)
+![Zeiss Import Montage](Images/Import-Zeiss-XML-Montage.png)
 
-The **Zeiss** allows the user to import image geometry from a Zeiss configuration file. To select a Zeiss configuration file, click the **Select** button and use the dialog to find it. The **File List** widget shows the referenced files from the Zeiss configuration file and shows whether they have been found. Additional options include converting the images to grayscale and overriding the origin and/or spacing of the image geometry. When the desired values have been set, click **Import** to load the dataset into **IMF Viewer**.
+The **Zeiss XML** allows the user to import image geometry from a Zeiss XML configuration file. To select a Zeiss XML configuration file, click the **Select** button and use the dialog to find it. The **File List** widget shows the referenced files from the Zeiss XML configuration file and shows whether they have been found. Additional options include converting the images to grayscale and overriding the origin and/or spacing of the image geometry. When the desired values have been set, click **Import** to load the dataset into **IMF Viewer**.
+
+---
+
+<a name="zeisszen">
+## Zeiss Zen##
+</a>
+
+![Zeiss Import Montage](Images/Import-Zeiss-Zen-Montage.png)
+
+The **Zeiss Zen** allows the user to import image geometry from a Zeiss Zen configuration file. To select a Zeiss Zen configuration file, click the **Select** button and use the dialog to find it. The **File List** widget shows the referenced files from the Zeiss Zen configuration file and shows whether they have been found. Additional options include converting the images to grayscale and overriding the origin and/or spacing of the image geometry. When the desired values have been set, click **Import** to load the dataset into **IMF Viewer**.
 
 ---
 
