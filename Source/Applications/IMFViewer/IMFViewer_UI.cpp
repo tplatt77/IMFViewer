@@ -66,6 +66,7 @@
 #include "SIMPLVtkLib/Dialogs/ImportRobometMontageDialog.h"
 #include "SIMPLVtkLib/Dialogs/ImportZeissMontageDialog.h"
 #include "SIMPLVtkLib/Dialogs/ImportZeissZenMontageDialog.h"
+#include "SIMPLVtkLib/Dialogs/MontageImageSavingDialog.h"
 #include "SIMPLVtkLib/Dialogs/PerformMontageDialog.h"
 #include "SIMPLVtkLib/Dialogs/Utilities/TileConfigFileGenerator.h"
 #include "SIMPLVtkLib/QtWidgets/VSDatasetImporter.h"
@@ -1107,20 +1108,29 @@ void IMFViewer_UI::saveSession()
 // -----------------------------------------------------------------------------
 void IMFViewer_UI::saveImage()
 {
-  QString filter = tr("Image File (*.png *.tiff *.jpeg *.bmp)");
-  QString filePath = QFileDialog::getSaveFileName(this, "Save As Image File", m_OpenDialogLastDirectory, filter);
+  MontageImageSavingDialog fileSaveDialog(this);
+  fileSaveDialog.setDirectory(m_OpenDialogLastDirectory);
+
+  int ret = fileSaveDialog.exec();
+  if(ret == QDialog::Rejected)
+  {
+    return;
+  }
+
+  QString filePath = fileSaveDialog.selectedFiles()[0];
   if(filePath.isEmpty())
   {
 	return;
   }
 
+  int subsamplingRate = fileSaveDialog.getSubsamplingRate();
   m_OpenDialogLastDirectory = filePath;
   VSController* controller = m_Ui->vsWidget->getController();
   VSMainWidgetBase* baseWidget = dynamic_cast<VSMainWidgetBase*>(m_Ui->vsWidget);
 //  VSFilterViewModel* filterViewModel = baseWidget->getActiveViewWidget()->getFilterViewModel();
   VSAbstractFilter::FilterListType selectedFilters = baseWidget->getActiveViewWidget()->getSelectedFilters();
 
-  bool success = controller->saveAsImage(filePath, selectedFilters.front());
+  bool success = controller->saveAsImage(filePath, selectedFilters.front(), subsamplingRate);
 
   if(success)
   {
